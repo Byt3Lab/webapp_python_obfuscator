@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MELODI OBFUSCATOR</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}?v=1.0.4">
+    <script src="{{ url_for('static', filename='main.js') }}?v=1.0.4" defer></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>PYTHON OBFUSCATOR</h1>
+            <p>Obfuscate your Python projects with ease.</p>
+        </header>
+
+        <main class="grid">
+            <section class="panel">
+                <h2>Obfuscate</h2>
+                <form id="obfuscate-form" action="/obfuscate" method="post" enctype="multipart/form-data">
+                    <label class="file-label">
+                        <input type="file" name="file" accept=".zip" required>
+                        <span class="file-select">Choisir un fichier ZIP</span>
+                    </label>
+
+                    <div class="method-select">
+                        <p>Méthode d'obfuscation</p>
+                        <label><input type="radio" name="method" value="pyarmor" checked> PyArmor</label>
+                        <label><input type="radio" name="method" value="python-obfuscator"> python-obfuscator</label>
+                    </div>
+
+                    <div style="display: flex; justify-content: center; margin-top: 10px;">
+                        <input type="submit" value="Obfuscate" class="btn-primary">
+                    </div>
+                </form>
+
+                <div id="result" class="result">
+                    <p id="result-text" aria-live="polite"></p>
+                    <a id="download-link" href="#" style="display:none" class="btn">Télécharger le ZIP obfusqué</a>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>Instructions</h2>
+                <ol>
+                    <li>Préparez votre projet Python en un fichier ZIP.</li>
+                    <li>Upload et cliquez sur "Obfuscate".</li>
+                    <li>Le projet obfusqué sera disponible au téléchargement.</li>
+                </ol>
+            </section>
+
+            <section class="panel history-panel">
+                <h2>Historique d'obfuscation</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fichier original</th>
+                            <th>Fichier obfusqué</th>
+                            <th>Horodatage</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <!-- History entries will be dynamically inserted here -->
+                    </tbody>
+                </table>
+                <button id="clear-history" class="btn-secondary">Effacer l'historique</button>
+            </section>
+        </main>
+
+        <footer>
+            <small>&copy; MELODI OBFUSCATOR</small>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('obfuscate-form');
+            const resultDiv = document.getElementById('result');
+            const resultText = document.getElementById('result-text');
+            const downloadLink = document.getElementById('download-link');
+            const fileInput = document.querySelector('input[type="file"]');
+            const fileSelect = document.querySelector('.file-select');
+
+            // Update file label when a file is selected
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) {
+                    fileSelect.textContent = fileInput.files[0].name;
+                } else {
+                    fileSelect.textContent = 'Choisir un fichier ZIP';
+                }
+            });
+
+            // Handle form submission
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                resultText.textContent = 'Obfuscation en cours...';
+                downloadLink.style.display = 'none';
+
+                const formData = new FormData(form);
+
+                console.log(formData);
+
+                try {
+                    const response = await fetch('/obfuscate', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        resultText.textContent = 'Obfuscation réussie !';
+                        downloadLink.href = data.download_url;
+                        downloadLink.style.display = 'inline-block';
+                    } else {
+                        resultText.textContent = `Erreur : ${data.error}`;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    resultText.textContent = 'Une erreur est survenue lors de l\'obfuscation.';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
