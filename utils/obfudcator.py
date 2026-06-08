@@ -81,10 +81,19 @@ class Obfuscator:
                     f.write(stdout)
 
     async def _detected_if_ignore_obfuscation(self, file_path: str):
-        with open(file_path, "r") as f:
-            if "# ignore-obfuscation" in f.read():
-                return True
-        return False
+        """Lit le fichier de manière non-bloquante pour chercher le tag d'ignorance."""
+        loop = asyncio.get_running_loop()
+        
+        def _check():
+            try:
+                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                    # On lit uniquement la première ou les deux premières lignes pour la performance
+                    first_lines = "".join([f.readline() for _ in range(3)])
+                    return "# ignore-obfuscation" in first_lines
+            except Exception:
+                return False
+
+        return await loop.run_in_executor(None, _check)
 
     async def _copy_source_code(self):
         file_name_without_ext = self.file_name.rsplit('.', 1)[0]
