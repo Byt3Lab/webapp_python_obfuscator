@@ -53,6 +53,15 @@ class Obfuscator:
                     # Laisser les fichiers non-Python tels quels (ils sont déjà copiés dans self.copy_dir)
                     continue
 
+                if await self._detected_if_ignore_obfuscation(src_path):
+                    continue
+
+                # if file.startswith("__init__"):
+                #     continue
+
+                # if file == "module.py":
+                #     continue
+
                 # Exécuter pyobfuscate et capturer la sortie sur stdout
                 cmd = f"pyobfuscate -i {shlex.quote(src_path)} --stdout"
                 process = await asyncio.create_subprocess_shell(
@@ -70,6 +79,12 @@ class Obfuscator:
                 # Écrire le résultat obfusqué en remplacement du fichier source copié
                 with open(src_path, "wb") as f:
                     f.write(stdout)
+
+    async def _detected_if_ignore_obfuscation(self, file_path: str):
+        with open(file_path, "r") as f:
+            if "# ignore-obfuscation" in f.read():
+                return True
+        return False
 
     async def _copy_source_code(self):
         file_name_without_ext = self.file_name.rsplit('.', 1)[0]
