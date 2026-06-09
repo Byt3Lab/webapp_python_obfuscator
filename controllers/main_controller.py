@@ -2,7 +2,7 @@ from quart import render_template, request, jsonify, send_file
 import os
 import config
 from werkzeug.utils import secure_filename
-from utils.obfudcator import Obfuscator
+from utils.obfuscator import Obfuscator
 
 async def index():
     return await render_template('index.html')
